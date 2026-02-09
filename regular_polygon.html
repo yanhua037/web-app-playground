@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Regular Polygon In A Circle</title>
+  <style>
+    :root {
+      --bg-a: #0f172a;
+      --bg-b: #1e293b;
+      --panel: rgba(15, 23, 42, 0.78);
+      --line: #cbd5e1;
+      --shape: #38bdf8;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --accent: #22d3ee;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, var(--bg-b), var(--bg-a) 55%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(920px, 100%);
+      border: 1px solid rgba(203, 213, 225, 0.35);
+      border-radius: 16px;
+      background: var(--panel);
+      backdrop-filter: blur(4px);
+      padding: 18px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.4rem, 2vw + 0.7rem, 2rem);
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .control {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+    }
+
+    input[type="number"] {
+      width: 84px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(203, 213, 225, 0.35);
+      background: rgba(15, 23, 42, 0.65);
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    input[type="range"] {
+      width: min(420px, 62vw);
+      accent-color: var(--accent);
+    }
+
+    .board {
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.06), rgba(248, 250, 252, 0.015));
+      overflow: hidden;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .hint {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .mono {
+      font-family: Consolas, "Courier New", monospace;
+      color: var(--text);
+    }
+
+    .name-label {
+      fill: var(--text);
+      font-size: 24px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Regular Polygon Inside a Circle</h1>
+    <p>Choose a side count (3 or more) to draw an equal-sided polygon inscribed in a circle.</p>
+
+    <section class="controls">
+      <label class="control" for="sidesInput">Sides:</label>
+      <input id="sidesInput" type="number" min="3" step="1" value="5" />
+      <input id="sidesRange" type="range" min="3" max="20" step="1" value="5" />
+      <div class="control">Current: <span class="mono" id="currentSides">5</span></div>
+    </section>
+
+    <div class="board">
+      <svg viewBox="0 0 720 520" role="img" aria-label="Regular polygon in a circle">
+        <circle id="guideCircle" cx="360" cy="260" r="190" fill="none" stroke="var(--line)" stroke-width="2" opacity="0.85" />
+        <polygon id="poly" fill="rgba(56, 189, 248, 0.28)" stroke="var(--shape)" stroke-width="3" />
+        <text id="polygonName" x="585" y="115" class="name-label">Pentagon</text>
+      </svg>
+    </div>
+
+    <p class="hint">All vertices lie on the circle, so every side has equal length.</p>
+  </main>
+
+  <script>
+    const input = document.getElementById("sidesInput");
+    const range = document.getElementById("sidesRange");
+    const current = document.getElementById("currentSides");
+    const polygon = document.getElementById("poly");
+    const polygonName = document.getElementById("polygonName");
+
+    const cx = 360;
+    const cy = 260;
+    const r = 190;
+
+    function clampSides(value) {
+      if (!Number.isFinite(value)) return 3;
+      return Math.max(3, Math.floor(value));
+    }
+
+    function buildPoints(sides) {
+      const points = [];
+      const startAngle = -Math.PI / 2;
+
+      for (let i = 0; i < sides; i += 1) {
+        const angle = startAngle + (2 * Math.PI * i) / sides;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        points.push(`${x.toFixed(2)},${y.toFixed(2)}`);
+      }
+
+      return points.join(" ");
+    }
+
+    function polygonLabel(sides) {
+      const labels = {
+        3: "Triangle",
+        4: "Quadrilateral",
+        5: "Pentagon",
+        6: "Hexagon",
+        7: "Heptagon",
+        8: "Octagon",
+        9: "Nonagon",
+        10: "Decagon",
+        11: "Hendecagon",
+        12: "Dodecagon"
+      };
+
+      return labels[sides] || `${sides}-gon`;
+    }
+
+    function render(sidesValue) {
+      const sides = clampSides(Number(sidesValue));
+      polygon.setAttribute("points", buildPoints(sides));
+      input.value = String(sides);
+      range.value = String(Math.min(Math.max(sides, Number(range.min)), Number(range.max)));
+      current.textContent = String(sides);
+      polygonName.textContent = polygonLabel(sides);
+    }
+
+    input.addEventListener("input", () => {
+      render(input.value);
+    });
+
+    range.addEventListener("input", () => {
+      render(range.value);
+    });
+
+    render(5);
+  </script>
+</body>
+</html>

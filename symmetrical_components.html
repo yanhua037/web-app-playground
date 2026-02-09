@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symmetrical Components Phasor Tool</title>
+  <style>
+    :root {
+      --bg-a: #0b1020;
+      --bg-b: #1b2544;
+      --panel: rgba(11, 16, 32, 0.8);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --line: #94a3b8;
+      --accent: #38bdf8;
+      --pos: #22c55e;
+      --neg: #f97316;
+      --zero: #eab308;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, var(--bg-b), var(--bg-a) 60%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(1200px, 100%);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 16px;
+      background: var(--panel);
+      backdrop-filter: blur(4px);
+      padding: 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.5rem, 2.2vw + 0.6rem, 2.2rem);
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) minmax(300px, 1.2fr);
+      gap: 16px;
+    }
+
+    .inputs {
+      display: grid;
+      gap: 12px;
+    }
+
+    .input-group {
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .input-group h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    input[type="number"] {
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.65);
+      color: var(--text);
+      font-size: 1rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      background: var(--accent);
+      color: #0b1020;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: transparent;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      color: var(--text);
+    }
+
+    .results {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      display: grid;
+      gap: 4px;
+    }
+
+    .plots {
+      display: grid;
+      gap: 14px;
+    }
+
+    .plot-card {
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.35);
+    }
+
+    .plot-title {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.05), rgba(248, 250, 252, 0.01));
+      border-radius: 8px;
+    }
+
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-a { background: #60a5fa; }
+    .dot-b { background: #f472b6; }
+    .dot-c { background: #34d399; }
+    .dot-pos { background: var(--pos); }
+    .dot-neg { background: var(--neg); }
+    .dot-zero { background: var(--zero); }
+
+    .note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Symmetrical Components Phasor Tool</h1>
+    <p>
+      Enter phase A/B/C phasors or sequence components (1/2/0) as magnitude and angle
+      (degrees). The tool computes the other set and plots both phasor groups.
+    </p>
+
+    <div class="layout">
+      <section class="inputs">
+        <div class="input-group">
+          <h3>Phase A</h3>
+          <div class="row">
+            <label>Magnitude
+              <input id="magA" type="number" value="1" step="0.01" />
+            </label>
+            <label>Angle (deg)
+              <input id="angA" type="number" value="0" step="1" />
+            </label>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <h3>Phase B</h3>
+          <div class="row">
+            <label>Magnitude
+              <input id="magB" type="number" value="1" step="0.01" />
+            </label>
+            <label>Angle (deg)
+              <input id="angB" type="number" value="-120" step="1" />
+            </label>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <h3>Phase C</h3>
+          <div class="row">
+            <label>Magnitude
+              <input id="magC" type="number" value="1" step="0.01" />
+            </label>
+            <label>Angle (deg)
+              <input id="angC" type="number" value="120" step="1" />
+            </label>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <h3>Sequence Components</h3>
+          <div class="row">
+            <label>V1 Magnitude
+              <input id="magV1" type="number" value="1" step="0.01" />
+            </label>
+            <label>V1 Angle (deg)
+              <input id="angV1" type="number" value="0" step="1" />
+            </label>
+          </div>
+          <div class="row">
+            <label>V2 Magnitude
+              <input id="magV2" type="number" value="0" step="0.01" />
+            </label>
+            <label>V2 Angle (deg)
+              <input id="angV2" type="number" value="0" step="1" />
+            </label>
+          </div>
+          <div class="row">
+            <label>V0 Magnitude
+              <input id="magV0" type="number" value="0" step="0.01" />
+            </label>
+            <label>V0 Angle (deg)
+              <input id="angV0" type="number" value="0" step="1" />
+            </label>
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button id="btnComputeABC">Compute From ABC</button>
+          <button id="btnComputeSeq" class="secondary">Compute From Sequence</button>
+          <button class="secondary" id="btnBalanced">Balanced ABC</button>
+        </div>
+
+        <div class="results" id="results"></div>
+        <div class="note">Sequence notation: 1 = positive, 2 = negative, 0 = zero.</div>
+      </section>
+
+      <section class="plots">
+        <div class="plot-card">
+          <div class="plot-title">ABC Phasors</div>
+          <svg id="plotABC" viewBox="0 0 420 320" role="img" aria-label="ABC phasors"></svg>
+          <div class="legend">
+            <span><span class="dot dot-a"></span>Phase A</span>
+            <span><span class="dot dot-b"></span>Phase B</span>
+            <span><span class="dot dot-c"></span>Phase C</span>
+          </div>
+        </div>
+
+        <div class="plot-card">
+          <div class="plot-title">Sequence Phasors (1 / 2 / 0)</div>
+          <svg id="plotSeq" viewBox="0 0 420 320" role="img" aria-label="sequence phasors"></svg>
+          <div class="legend">
+            <span><span class="dot dot-pos"></span>Positive (1)</span>
+            <span><span class="dot dot-neg"></span>Negative (2)</span>
+            <span><span class="dot dot-zero"></span>Zero (0)</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const magA = document.getElementById("magA");
+    const angA = document.getElementById("angA");
+    const magB = document.getElementById("magB");
+    const angB = document.getElementById("angB");
+    const magC = document.getElementById("magC");
+    const angC = document.getElementById("angC");
+    const magV1 = document.getElementById("magV1");
+    const angV1 = document.getElementById("angV1");
+    const magV2 = document.getElementById("magV2");
+    const angV2 = document.getElementById("angV2");
+    const magV0 = document.getElementById("magV0");
+    const angV0 = document.getElementById("angV0");
+    const results = document.getElementById("results");
+    const plotABC = document.getElementById("plotABC");
+    const plotSeq = document.getElementById("plotSeq");
+
+    const btnComputeABC = document.getElementById("btnComputeABC");
+    const btnComputeSeq = document.getElementById("btnComputeSeq");
+    const btnBalanced = document.getElementById("btnBalanced");
+
+    const colorsABC = {
+      A: "#60a5fa",
+      B: "#f472b6",
+      C: "#34d399"
+    };
+
+    const colorsSeq = {
+      pos: "#22c55e",
+      neg: "#f97316",
+      zero: "#eab308"
+    };
+
+    function toRadians(deg) {
+      return (deg * Math.PI) / 180;
+    }
+
+    function toDegrees(rad) {
+      return (rad * 180) / Math.PI;
+    }
+
+    function phasorFromMagAngle(mag, deg) {
+      const angle = toRadians(deg);
+      return { re: mag * Math.cos(angle), im: mag * Math.sin(angle) };
+    }
+
+    function add(a, b) {
+      return { re: a.re + b.re, im: a.im + b.im };
+    }
+
+    function mul(a, b) {
+      return { re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re };
+    }
+
+    function scale(a, k) {
+      return { re: a.re * k, im: a.im * k };
+    }
+
+    function magAngle(a) {
+      return {
+        mag: Math.hypot(a.re, a.im),
+        ang: toDegrees(Math.atan2(a.im, a.re))
+      };
+    }
+
+    function symmetricComponents(va, vb, vc) {
+      const a = { re: -0.5, im: Math.sqrt(3) / 2 };
+      const a2 = { re: -0.5, im: -Math.sqrt(3) / 2 };
+
+      const v0 = scale(add(add(va, vb), vc), 1 / 3);
+      const v1 = scale(add(add(va, mul(a, vb)), mul(a2, vc)), 1 / 3);
+      const v2 = scale(add(add(va, mul(a2, vb)), mul(a, vc)), 1 / 3);
+
+      return { v0, v1, v2 };
+    }
+
+    function componentsToABC(v0, v1, v2) {
+      const a = { re: -0.5, im: Math.sqrt(3) / 2 };
+      const a2 = { re: -0.5, im: -Math.sqrt(3) / 2 };
+
+      const va = add(add(v0, v1), v2);
+      const vb = add(add(v0, mul(a2, v1)), mul(a, v2));
+      const vc = add(add(v0, mul(a, v1)), mul(a2, v2));
+
+      return { va, vb, vc };
+    }
+
+    function clearPlot(svg) {
+      while (svg.firstChild) {
+        svg.removeChild(svg.firstChild);
+      }
+    }
+
+    function drawAxes(svg, centerX, centerY, radius) {
+      const axis = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      axis.setAttribute("cx", centerX);
+      axis.setAttribute("cy", centerY);
+      axis.setAttribute("r", radius);
+      axis.setAttribute("fill", "none");
+      axis.setAttribute("stroke", "rgba(148, 163, 184, 0.45)");
+      axis.setAttribute("stroke-width", "1");
+      svg.appendChild(axis);
+
+      const xAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      xAxis.setAttribute("x1", centerX - radius);
+      xAxis.setAttribute("y1", centerY);
+      xAxis.setAttribute("x2", centerX + radius);
+      xAxis.setAttribute("y2", centerY);
+      xAxis.setAttribute("stroke", "rgba(148, 163, 184, 0.35)");
+      xAxis.setAttribute("stroke-width", "1");
+      svg.appendChild(xAxis);
+
+      const yAxis = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      yAxis.setAttribute("x1", centerX);
+      yAxis.setAttribute("y1", centerY - radius);
+      yAxis.setAttribute("x2", centerX);
+      yAxis.setAttribute("y2", centerY + radius);
+      yAxis.setAttribute("stroke", "rgba(148, 163, 184, 0.35)");
+      yAxis.setAttribute("stroke-width", "1");
+      svg.appendChild(yAxis);
+    }
+
+    function drawPhasor(svg, centerX, centerY, scalePx, vector, color, label) {
+      const x2 = centerX + vector.re * scalePx;
+      const y2 = centerY - vector.im * scalePx;
+
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", centerX);
+      line.setAttribute("y1", centerY);
+      line.setAttribute("x2", x2);
+      line.setAttribute("y2", y2);
+      line.setAttribute("stroke", color);
+      line.setAttribute("stroke-width", "3");
+      line.setAttribute("stroke-linecap", "round");
+      svg.appendChild(line);
+
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      dot.setAttribute("cx", x2);
+      dot.setAttribute("cy", y2);
+      dot.setAttribute("r", "4");
+      dot.setAttribute("fill", color);
+      svg.appendChild(dot);
+
+      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      text.setAttribute("x", x2 + 6);
+      text.setAttribute("y", y2 - 6);
+      text.setAttribute("fill", color);
+      text.setAttribute("font-size", "12");
+      text.textContent = label;
+      svg.appendChild(text);
+    }
+
+    function drawPlot(svg, phasors, colors) {
+      clearPlot(svg);
+      const viewBox = svg.viewBox.baseVal;
+      const centerX = viewBox.width / 2;
+      const centerY = viewBox.height / 2;
+      const radius = Math.min(centerX, centerY) - 24;
+
+      drawAxes(svg, centerX, centerY, radius);
+
+      const maxMag = Math.max(
+        1,
+        ...Object.values(phasors).map(vec => Math.hypot(vec.re, vec.im))
+      );
+      const scalePx = radius / maxMag;
+
+      Object.entries(phasors).forEach(([key, vec]) => {
+        drawPhasor(svg, centerX, centerY, scalePx, vec, colors[key], key);
+      });
+    }
+
+    function formatResult(label, vec) {
+      const polar = magAngle(vec);
+      return `${label}: ${polar.mag.toFixed(3)} ∠ ${polar.ang.toFixed(1)}°`;
+    }
+
+    function updateSeqInputs(v0, v1, v2) {
+      const p0 = magAngle(v0);
+      const p1 = magAngle(v1);
+      const p2 = magAngle(v2);
+
+      magV0.value = p0.mag.toFixed(3);
+      angV0.value = p0.ang.toFixed(1);
+      magV1.value = p1.mag.toFixed(3);
+      angV1.value = p1.ang.toFixed(1);
+      magV2.value = p2.mag.toFixed(3);
+      angV2.value = p2.ang.toFixed(1);
+    }
+
+    function updateABCInputs(va, vb, vc) {
+      const pa = magAngle(va);
+      const pb = magAngle(vb);
+      const pc = magAngle(vc);
+
+      magA.value = pa.mag.toFixed(3);
+      angA.value = pa.ang.toFixed(1);
+      magB.value = pb.mag.toFixed(3);
+      angB.value = pb.ang.toFixed(1);
+      magC.value = pc.mag.toFixed(3);
+      angC.value = pc.ang.toFixed(1);
+    }
+
+    function renderAll(va, vb, vc, v0, v1, v2) {
+      drawPlot(plotABC, { A: va, B: vb, C: vc }, colorsABC);
+      drawPlot(plotSeq, { pos: v1, neg: v2, zero: v0 }, colorsSeq);
+
+      results.innerHTML = [
+        formatResult("V1 (positive)", v1),
+        formatResult("V2 (negative)", v2),
+        formatResult("V0 (zero)", v0),
+        formatResult("Va", va),
+        formatResult("Vb", vb),
+        formatResult("Vc", vc)
+      ].map(line => `<div>${line}</div>`).join("");
+    }
+
+    function computeFromABC() {
+      const va = phasorFromMagAngle(Number(magA.value), Number(angA.value));
+      const vb = phasorFromMagAngle(Number(magB.value), Number(angB.value));
+      const vc = phasorFromMagAngle(Number(magC.value), Number(angC.value));
+
+      const { v0, v1, v2 } = symmetricComponents(va, vb, vc);
+
+      updateSeqInputs(v0, v1, v2);
+      renderAll(va, vb, vc, v0, v1, v2);
+    }
+
+    function computeFromSeq() {
+      const v1 = phasorFromMagAngle(Number(magV1.value), Number(angV1.value));
+      const v2 = phasorFromMagAngle(Number(magV2.value), Number(angV2.value));
+      const v0 = phasorFromMagAngle(Number(magV0.value), Number(angV0.value));
+
+      const { va, vb, vc } = componentsToABC(v0, v1, v2);
+      updateABCInputs(va, vb, vc);
+      renderAll(va, vb, vc, v0, v1, v2);
+    }
+
+    btnComputeABC.addEventListener("click", computeFromABC);
+    btnComputeSeq.addEventListener("click", computeFromSeq);
+
+    btnBalanced.addEventListener("click", () => {
+      magA.value = "1";
+      angA.value = "0";
+      magB.value = "1";
+      angB.value = "-120";
+      magC.value = "1";
+      angC.value = "120";
+      computeFromABC();
+    });
+
+    [magA, angA, magB, angB, magC, angC].forEach(input => {
+      input.addEventListener("change", computeFromABC);
+    });
+
+    [magV0, angV0, magV1, angV1, magV2, angV2].forEach(input => {
+      input.addEventListener("change", computeFromSeq);
+    });
+
+    computeFromABC();
+  </script>
+</body>
+</html>

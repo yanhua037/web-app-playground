@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relative Planet Sizes</title>
+  <style>
+    :root {
+      --bg1: #0a1128;
+      --bg2: #001f54;
+      --text: #f5f7ff;
+      --muted: #c7d2ff;
+      --accent: #9ad1ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top, #153e75 0%, var(--bg1) 45%, var(--bg2) 100%);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(1100px, 100%);
+      background: rgba(3, 8, 24, 0.75);
+      border: 1px solid rgba(154, 209, 255, 0.35);
+      border-radius: 16px;
+      padding: 20px;
+      backdrop-filter: blur(3px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.4rem, 2vw + 0.6rem, 2.1rem);
+      letter-spacing: 0.5px;
+    }
+
+    p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .chart-wrap {
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    svg {
+      width: 100%;
+      min-width: 920px;
+      height: 420px;
+      display: block;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+    }
+
+    .legend {
+      margin-top: 10px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .planet-label {
+      fill: var(--text);
+      font-size: 14px;
+      text-anchor: middle;
+      font-weight: 600;
+    }
+
+    .planet-cn {
+      fill: var(--muted);
+      font-size: 12px;
+      text-anchor: middle;
+    }
+
+    .planet-size {
+      fill: var(--muted);
+      font-size: 12px;
+      text-anchor: middle;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Relative Planet Sizes in Our Solar System</h1>
+    <p>
+      Circle diameters are scaled using each planet's mean diameter.
+      Earth is shown as 1x for reference.
+    </p>
+
+    <div class="chart-wrap">
+      <svg viewBox="0 0 1000 420" role="img" aria-label="Relative planet sizes">
+        <line x1="30" y1="300" x2="970" y2="300" stroke="rgba(255,255,255,0.25)" stroke-width="1" />
+        <circle cx="75" cy="296.34" r="3.66" fill="#9e9e9e" stroke="rgba(255,255,255,0.3)" stroke-width="1" opacity="0.95" />
+        <circle cx="190" cy="290.91" r="9.09" fill="#d4af7f" stroke="rgba(255,255,255,0.3)" stroke-width="1" opacity="0.95" />
+        <circle cx="305" cy="290.43" r="9.57" fill="#4ea8de" stroke="rgba(255,255,255,0.3)" stroke-width="1" opacity="0.95" />
+        <circle cx="420" cy="294.91" r="5.09" fill="#c44536" stroke="rgba(255,255,255,0.3)" stroke-width="1" opacity="0.95" />
+        <circle cx="535" cy="195.00" r="105.00" fill="#d9a066" stroke="rgba(255,255,255,0.3)" stroke-width="1" opacity="0.95" />
+        <circle cx="650" cy="212.54" r="87.46" fill="#f2cc8f" stroke="rgba(255,255,255,0.3)" stroke-width="1" opacity="0.95" />
+        <circle cx="765" cy="261.91" r="38.09" fill="#8ecae6" stroke="rgba(255,255,255,0.3)" stroke-width="1" opacity="0.95" />
+        <circle cx="880" cy="263.02" r="36.98" fill="#3a86ff" stroke="rgba(255,255,255,0.3)" stroke-width="1" opacity="0.95" />
+        <text x="75" y="330" class="planet-label">Mercury</text>
+        <text x="75" y="346" class="planet-cn">水星</text>
+        <text x="75" y="364" class="planet-size">0.38x Earth</text>
+        <text x="190" y="330" class="planet-label">Venus</text>
+        <text x="190" y="346" class="planet-cn">金星</text>
+        <text x="190" y="364" class="planet-size">0.95x Earth</text>
+        <text x="305" y="330" class="planet-label">Earth</text>
+        <text x="305" y="346" class="planet-cn">地球</text>
+        <text x="305" y="364" class="planet-size">1.00x Earth</text>
+        <text x="420" y="330" class="planet-label">Mars</text>
+        <text x="420" y="346" class="planet-cn">火星</text>
+        <text x="420" y="364" class="planet-size">0.53x Earth</text>
+        <text x="535" y="330" class="planet-label">Jupiter</text>
+        <text x="535" y="346" class="planet-cn">木星</text>
+        <text x="535" y="364" class="planet-size">10.97x Earth</text>
+        <text x="650" y="330" class="planet-label">Saturn</text>
+        <text x="650" y="346" class="planet-cn">土星</text>
+        <text x="650" y="364" class="planet-size">9.14x Earth</text>
+        <text x="765" y="330" class="planet-label">Uranus</text>
+        <text x="765" y="346" class="planet-cn">天王星</text>
+        <text x="765" y="364" class="planet-size">3.98x Earth</text>
+        <text x="880" y="330" class="planet-label">Neptune</text>
+        <text x="880" y="346" class="planet-cn">海王星</text>
+        <text x="880" y="364" class="planet-size">3.86x Earth</text>
+      </svg>
+    </div>
+
+    <div class="legend">Data source: mean planetary diameters (km), approximate NASA values.</div>
+  </main>
+</body>
+</html>
